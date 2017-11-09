@@ -2,6 +2,7 @@ package es.voghdev.chucknorrisjokes.ui.fragment
 
 import android.os.Bundle
 import android.view.View
+import com.squareup.picasso.Picasso
 import es.voghdev.chucknorrisjokes.R
 import es.voghdev.chucknorrisjokes.app.AndroidResLocator
 import es.voghdev.chucknorrisjokes.datasource.api.GetJokeCategoriesApiImpl
@@ -10,11 +11,12 @@ import es.voghdev.chucknorrisjokes.datasource.api.GetRandomJokeByCategoryApiImpl
 import es.voghdev.chucknorrisjokes.datasource.api.GetRandomJokeByKeywordApiImpl
 import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
 import es.voghdev.chucknorrisjokes.ui.presenter.JokeByKeywordPresenter
+import kotlinx.android.synthetic.main.fragment_joke_by_keyword.*
 import kotlinx.coroutines.experimental.runBlocking
+import org.jetbrains.anko.toast
 
 
 class JokeByKeywordFragment : BaseFragment(), JokeByKeywordPresenter.MVPView, JokeByKeywordPresenter.Navigator {
-
     var presenter: JokeByKeywordPresenter? = null
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -33,9 +35,30 @@ class JokeByKeywordFragment : BaseFragment(), JokeByKeywordPresenter.MVPView, Jo
         runBlocking {
             presenter?.initialize()
         }
+
+        btn_search.setOnClickListener {
+            val text = et_keyword.text?.toString()?.trim() ?: ""
+            runBlocking {
+                presenter?.onSearchButtonClicked(text)
+            }
+        }
     }
 
     override fun getLayoutId(): Int {
         return R.layout.fragment_joke_by_keyword
+    }
+
+    override fun showError(text: String) {
+        activity.toast(text)
+    }
+
+    override fun showJokeText(s: String) {
+        tv_text.text = s
+    }
+
+    override fun showJokeImage(url: String) {
+        Picasso.with(context)
+                .load(url)
+                .into(iv_image)
     }
 }
