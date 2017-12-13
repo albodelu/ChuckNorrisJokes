@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <Spinner
+        android:id="@+id/spn_categories"
+        style="@style/JokeCategorySpinner" />
+
+    <Button
+        android:id="@+id/btn_search"
+        style="@style/SearchByCategoryButton" />
+
+    <ImageView
+        android:id="@+id/iv_image"
+        style="@style/ChuckNorrisImage" />
 
     <TextView
         android:id="@+id/tv_text"
