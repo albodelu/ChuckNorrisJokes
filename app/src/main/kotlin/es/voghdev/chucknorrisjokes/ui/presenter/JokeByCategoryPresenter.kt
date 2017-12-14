@@ -39,7 +39,6 @@ class JokeByCategoryPresenter(val context: ResLocator, val repository: ChuckNorr
         fun fillCategoriesSpinner(list: List<JokeCategory>)
         fun showJokeText(text: String)
         fun showJokeImage(url: String)
-
     }
 
     interface Navigator {
