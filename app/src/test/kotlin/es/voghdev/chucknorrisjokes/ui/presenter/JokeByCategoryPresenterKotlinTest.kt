@@ -14,10 +14,11 @@ import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
 import io.kotlintest.specs.StringSpec
 import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Assert
 
 class JokeByCategoryPresenterKotlinTest : StringSpec(
     {
+        val POLITICS = 0
+
         var mockResLocator: ResLocator = mock()
 
         var mockNavigator: JokeByCategoryPresenter.Navigator = mock()
@@ -48,7 +49,7 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
         )
 
         val listCaptor = argumentCaptor<List<JokeCategory>>()
-        val strCaptor = argumentCaptor<String>()
+        val categoryCaptor = argumentCaptor<JokeCategory>()
 
         "This screen should request all available categories on start, in order to fill categories spinner" {
             givenThereAreNoCategoriesInTheRepository(mockChuckNorrisRepository)
@@ -73,8 +74,7 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
                 assertEquals(2, listCaptor.firstValue.size)
             }
 
-        "This time we'll use a Given/When/Then approach, so:" +
-            "Given there are some categories in the repository, and" +
+        "Given there are some categories in the repository, and" +
             "Given There is an example joke in the repository" +
             "When I tap on the Search button with the \"Politics\" category selected" +
             "Then the App should request a random Joke by the \"Politics\" Category" {
@@ -84,12 +84,12 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
                 runBlocking {
                     presenter.initialize()
 
-                    presenter.onSearchButtonClicked(0)
+                    presenter.onSearchButtonClicked(POLITICS)
                 }
 
-                verify(mockView).showJokeImage(strCaptor.capture())
+                verify(mockChuckNorrisRepository).getRandomJokeByCategory(categoryCaptor.capture())
 
-                Assert.assertEquals("http://chuck.image.url", strCaptor.firstValue)
+                assertEquals(JokeCategory("Politics"), categoryCaptor.firstValue)
             }
     })
 
