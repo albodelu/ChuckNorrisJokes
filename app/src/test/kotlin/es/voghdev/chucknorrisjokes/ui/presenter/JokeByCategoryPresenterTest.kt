@@ -18,7 +18,7 @@ import org.mockito.ArgumentMatchers.anyList
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
-class JokeByCategoryPresenterTest() {
+class JokeByCategoryPresenterTest {
     @Mock
     lateinit var mockResLocator: ResLocator
 

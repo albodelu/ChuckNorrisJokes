@@ -58,6 +58,8 @@ fun Either<AbsError, List<Any>>.hasNoResults(): Boolean {
     return success() && (this as? Either.Right)?.b?.isEmpty() ?: false
 }
 
+fun <A> A.asResult() = Either.right(this)
+
 fun Spinner.configureDefaultAdapter(values: List<String>) {
     adapter = ArrayAdapter<String>(context, R.layout.simple_spinner_item, values)
 }
