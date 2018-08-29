@@ -19,13 +19,13 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
     {
         val POLITICS = 0
 
-        var mockResLocator: ResLocator = mock()
+        val mockResLocator: ResLocator = mock()
 
-        var mockNavigator: JokeByCategoryPresenter.Navigator = mock()
+        val mockNavigator: JokeByCategoryPresenter.Navigator = mock()
 
-        var mockView: JokeByCategoryPresenter.MVPView = mock()
+        val mockView: JokeByCategoryPresenter.MVPView = mock()
 
-        var mockChuckNorrisRepository: ChuckNorrisRepository = mock()
+        val mockChuckNorrisRepository: ChuckNorrisRepository = mock()
 
         fun createMockedPresenter(): JokeByCategoryPresenter {
             val presenter = JokeByCategoryPresenter(mockResLocator, mockChuckNorrisRepository)
@@ -50,6 +50,7 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
 
         val listCaptor = argumentCaptor<List<JokeCategory>>()
         val categoryCaptor = argumentCaptor<JokeCategory>()
+        val strCaptor = argumentCaptor<String>()
 
         "This screen should request all available categories on start, in order to fill categories spinner" {
             givenThereAreNoCategoriesInTheRepository(mockChuckNorrisRepository)
@@ -74,10 +75,41 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
                 assertEquals(2, listCaptor.firstValue.size)
             }
 
+        "This screen should search jokes by category 'Politics'" +
+            "When 'Search' button is clicked" +
+            "And 'Politics' has been selected in the Spinner" {
+                givenThereAreSomeCategories(mockChuckNorrisRepository, someCategories)
+                givenTheRepositoryHasAnExampleJoke(mockChuckNorrisRepository, aJoke)
+
+                runBlocking {
+                    presenter.initialize()
+
+                    presenter.onSearchButtonClicked(POLITICS)
+                }
+
+                verify(mockChuckNorrisRepository).getRandomJokeByCategory(categoryCaptor.capture())
+            }
+
+        "This screen should display the returned Joke's text" +
+            "When a search is performed and it returns results" {
+                givenThereAreSomeCategories(mockChuckNorrisRepository, someCategories)
+                givenTheRepositoryHasAnExampleJoke(mockChuckNorrisRepository, aJoke)
+
+                runBlocking {
+                    presenter.initialize()
+
+                    presenter.onSearchButtonClicked(0)
+                }
+
+                verify(mockView).showJokeText(strCaptor.capture())
+
+                assertEquals("We have our fears, fear has its Chuck Norris'es", strCaptor.firstValue)
+            }
+
         "Given there are some categories in the repository, and" +
             "Given There is an example joke in the repository" +
-            "When I tap on the Search button with the \"Politics\" category selected" +
-            "Then the App should request a random Joke by the \"Politics\" Category" {
+            "When I tap on the Search button with the 'Politics' category selected" +
+            "Then the App should request a random Joke by the 'Politics' Category" {
                 givenThereAreSomeCategories(mockChuckNorrisRepository, someCategories)
                 givenTheRepositoryHasAnExampleJoke(mockChuckNorrisRepository, aJoke)
 
