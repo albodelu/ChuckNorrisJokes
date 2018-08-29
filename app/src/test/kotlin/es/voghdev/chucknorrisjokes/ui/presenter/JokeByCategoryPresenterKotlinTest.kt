@@ -106,8 +106,8 @@ class JokeByCategoryPresenterKotlinTest : StringSpec(
                 assertEquals("We have our fears, fear has its Chuck Norris'es", strCaptor.firstValue)
             }
 
-        "Given there are some categories in the repository, and" +
-            "Given There is an example joke in the repository" +
+        "Given there are some categories in the repository" +
+            "And There is an example joke in the repository" +
             "When I tap on the Search button with the 'Politics' category selected" +
             "Then the App should request a random Joke by the 'Politics' Category" {
                 givenThereAreSomeCategories(mockChuckNorrisRepository, someCategories)
