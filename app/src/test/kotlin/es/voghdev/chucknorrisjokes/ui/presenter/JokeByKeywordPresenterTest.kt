@@ -3,172 +3,153 @@ package es.voghdev.chucknorrisjokes.ui.presenter
 import arrow.core.Either
 import arrow.core.Right
 import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import es.voghdev.chucknorrisjokes.app.ResLocator
 import es.voghdev.chucknorrisjokes.model.CNError
 import es.voghdev.chucknorrisjokes.model.Joke
 import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
+import io.kotlintest.specs.StringSpec
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mock
 import org.mockito.Mockito.times
-import org.mockito.MockitoAnnotations
 
-class JokeByKeywordPresenterTest() {
-    @Mock
-    lateinit var mockResLocator: ResLocator
+class JokeByKeywordPresenterTest : StringSpec(
+    {
+        val mockResLocator: ResLocator = mock()
 
-    @Mock
-    lateinit var mockNavigator: JokeByKeywordPresenter.Navigator
+        val mockNavigator: JokeByKeywordPresenter.Navigator = mock()
 
-    @Mock
-    lateinit var mockView: JokeByKeywordPresenter.MVPView
+        val mockView: JokeByKeywordPresenter.MVPView = mock()
 
-    @Mock
-    lateinit var mockChuckNorrisRepository: ChuckNorrisRepository
+        val mockChuckNorrisRepository: ChuckNorrisRepository = mock()
 
-    lateinit var presenter: JokeByKeywordPresenter
+        fun createMockedPresenter(): JokeByKeywordPresenter {
+            val presenter = JokeByKeywordPresenter(mockResLocator, mockChuckNorrisRepository)
+            presenter.view = mockView
+            presenter.navigator = mockNavigator
+            return presenter
+        }
 
-    val exampleJoke = Joke(
+        val presenter = createMockedPresenter()
+
+        val exampleJoke = Joke(
             id = "GdEH64AkS9qEQCmqMwM2Rg",
             iconUrl = "https://assets.chucknorris.host/img/avatar/chuck-norris.png",
             url = "http://api.chucknorris.io/jokes/GdEH64AkS9qEQCmqMwM2Rg",
             value = "Chuck Norris knows how to say souffle in the French language."
-    )
+        )
 
-    val anotherJoke = Joke(id = "abc",
-            iconUrl = "http://chuck.image.url",
-            url = "http://example.url",
-            value = "We have our fears, fear has its Chuck Norris'es")
+        val anotherJoke = Joke(id = "abc",
+                               iconUrl = "http://chuck.image.url",
+                               url = "http://example.url",
+                               value = "We have our fears, fear has its Chuck Norris'es")
 
-    val someJokes = listOf(
+        val someJokes = listOf(
             exampleJoke,
             anotherJoke
-    )
+        )
 
-    @Before
-    fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        "should not accept an empty text as search keyword" {
+            runBlocking {
+                presenter.initialize()
 
-        presenter = createMockedPresenter()
-    }
+                presenter.onSearchButtonClicked("")
+            }
 
-    @Test
-    fun `should not accept an empty text as search keyword`() {
-        runBlocking {
-            presenter.initialize()
-
-            presenter.onSearchButtonClicked("")
+            verify(mockView).showKeywordError("You must enter a keyword")
         }
 
-        verify(mockView).showKeywordError("You must enter a keyword")
-    }
+        "should request a random joke by keyword when 'Search' button is clicked with a valid keyword" {
+            givenTheApiReturnsNoResults(mockChuckNorrisRepository)
 
-    @Test
-    fun `should request a random joke by keyword when "search" button is clicked with a valid keyword`() {
-        givenTheApiReturnsNoResults()
+            runBlocking {
+                presenter.initialize()
 
-        runBlocking {
-            presenter.initialize()
+                presenter.onSearchButtonClicked("lee")
+            }
 
-            presenter.onSearchButtonClicked("lee")
+            verify(mockChuckNorrisRepository).getRandomJokeByKeyword("lee")
         }
 
-        verify(mockChuckNorrisRepository).getRandomJokeByKeyword("lee")
-    }
+        "should show an empty case when an empty list is returned by the API" {
+            givenTheApiReturnsNoResults(mockChuckNorrisRepository)
 
-    @Test
-    fun `should show an empty case when an empty list is returned by the API`() {
-        givenTheApiReturnsNoResults()
+            runBlocking {
+                presenter.initialize()
 
-        runBlocking {
-            presenter.initialize()
+                presenter.onSearchButtonClicked("this query returns no results")
+            }
 
-            presenter.onSearchButtonClicked("this query returns no results")
+            verify(mockView).showEmptyCase()
         }
 
-        verify(mockView).showEmptyCase()
-    }
+        "should add the first two jokes to the list when a list of two jokes is returned by the API" {
+            givenTheApiReturns(mockChuckNorrisRepository, someJokes)
 
-    @Test
-    fun `should add the first two jokes to the list when a list of two jokes is returned by the API`() {
-        givenTheApiReturns(someJokes)
+            runBlocking {
+                presenter.initialize()
 
-        runBlocking {
-            presenter.initialize()
+                presenter.onSearchButtonClicked("chan")
+            }
 
-            presenter.onSearchButtonClicked("chan")
+            val captor = argumentCaptor<Joke>()
+
+            verify(mockView, times(2)).addJoke(captor.capture())
+
+            assertEquals("Chuck Norris knows how to say souffle in the French language.", captor.firstValue.value)
+            assertEquals("https://assets.chucknorris.host/img/avatar/chuck-norris.png", captor.firstValue.iconUrl)
+            assertEquals("We have our fears, fear has its Chuck Norris'es", captor.secondValue.value)
+            assertEquals("http://chuck.image.url", captor.secondValue.iconUrl)
         }
 
-        val captor = argumentCaptor<Joke>()
+        "should hide empty case when there are results" {
+            givenTheApiReturns(mockChuckNorrisRepository, someJokes)
 
-        verify(mockView, times(2)).addJoke(captor.capture())
+            runBlocking {
+                presenter.initialize()
 
-        assertEquals("Chuck Norris knows how to say souffle in the French language.", captor.firstValue.value)
-        assertEquals("https://assets.chucknorris.host/img/avatar/chuck-norris.png", captor.firstValue.iconUrl)
-        assertEquals("We have our fears, fear has its Chuck Norris'es", captor.secondValue.value)
-        assertEquals("http://chuck.image.url", captor.secondValue.iconUrl)
-    }
+                presenter.onSearchButtonClicked("Jackie")
+            }
 
-    @Test
-    fun `should hide empty case when there are results`() {
-        givenTheApiReturns(someJokes)
-
-        runBlocking {
-            presenter.initialize()
-
-            presenter.onSearchButtonClicked("Jackie")
+            verify(mockView).hideEmptyCase()
         }
 
-        verify(mockView).hideEmptyCase()
-    }
+        "should show an error when Api returns an error" {
+            givenTheApiReturnsAnError(mockChuckNorrisRepository, "422 unprocessable Entity")
 
-    @Test
-    fun `should show an error when Api returns an error`() {
-        givenTheApiReturnsAnError("422 unprocessable Entity")
+            runBlocking {
+                presenter.initialize()
 
-        runBlocking {
-            presenter.initialize()
+                presenter.onSearchButtonClicked("erroneous search")
+            }
 
-            presenter.onSearchButtonClicked("erroneous search")
+            verify(mockView).showError("422 unprocessable Entity")
         }
 
-        verify(mockView).showError("422 unprocessable Entity")
-    }
+        "should not allow searches with less than two characters" {
+            givenTheApiReturnsAnError(mockChuckNorrisRepository, "422 unprocessable Entity")
 
-    @Test
-    fun `should not allow searches with less than two characters`() {
-        givenTheApiReturnsAnError("422 unprocessable Entity")
+            runBlocking {
+                presenter.initialize()
 
-        runBlocking {
-            presenter.initialize()
+                presenter.onSearchButtonClicked("tr")
+            }
 
-            presenter.onSearchButtonClicked("tr")
+            verify(mockView).showKeywordError("Keyword must have 2 characters at least")
         }
+    })
 
-        verify(mockView).showKeywordError("Keyword must have 2 characters at least")
-    }
+fun givenTheApiReturnsAnError(mockChuckNorrisRepository: ChuckNorrisRepository, message: String) {
+    whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Either.Left(CNError(message)))
+}
 
-    private fun givenTheApiReturnsAnError(message: String) {
-        whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Either.Left(CNError(message)))
-    }
+fun givenTheApiReturns(mockChuckNorrisRepository: ChuckNorrisRepository, jokes: List<Joke>) {
+    whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Right(jokes))
+}
 
-    private fun givenTheApiReturns(jokes: List<Joke>) {
-        whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Right(jokes))
-    }
-
-    private fun givenTheApiReturnsNoResults() {
-        whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Right(emptyList()))
-    }
-
-    private fun createMockedPresenter(): JokeByKeywordPresenter {
-        val presenter = JokeByKeywordPresenter(mockResLocator, mockChuckNorrisRepository)
-        presenter.view = mockView
-        presenter.navigator = mockNavigator
-        return presenter
-    }
+fun givenTheApiReturnsNoResults(mockChuckNorrisRepository: ChuckNorrisRepository) {
+    whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(Right(emptyList()))
 }

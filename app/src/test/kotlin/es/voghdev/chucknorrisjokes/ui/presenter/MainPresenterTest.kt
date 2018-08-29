@@ -1,33 +1,38 @@
 package es.voghdev.chucknorrisjokes.ui.presenter
 
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import es.voghdev.chucknorrisjokes.app.ResLocator
+import io.kotlintest.specs.StringSpec
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Before
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
-class MainPresenterTest() {
-    @Mock
-    lateinit var mockResLocator: ResLocator
+class MainPresenterTest : StringSpec(
+    {
+        val mockResLocator: ResLocator = mock()
 
-    @Mock
-    lateinit var mockNavigator: MainPresenter.Navigator
+        val mockNavigator: MainPresenter.Navigator = mock()
 
-    @Mock
-    lateinit var mockView: MainPresenter.MVPView
+        val mockView: MainPresenter.MVPView = mock()
 
-    lateinit var presenter: MainPresenter
+        fun createMockedPresenter(): MainPresenter {
+            val presenter = MainPresenter(mockResLocator)
+            presenter.view = mockView
+            presenter.navigator = mockNavigator
+            return presenter
+        }
 
-    @Before
-    fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        val presenter = createMockedPresenter()
 
-        presenter = createMockedPresenter()
+        "The Three tabs should be configured when App is started" {
+            runBlocking {
+                presenter.initialize()
+            }
+
+            verify(mockView).configureTabs()
+        }
     }
-
-    private fun createMockedPresenter(): MainPresenter {
-        val presenter = MainPresenter(mockResLocator)
-        presenter.view = mockView
-        presenter.navigator = mockNavigator
-        return presenter
-    }
-}
+)
