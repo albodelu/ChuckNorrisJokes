@@ -27,9 +27,9 @@ import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
 import es.voghdev.chucknorrisjokes.ui.presenter.JokeByKeywordPresenter
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import org.jetbrains.anko.support.v4.toast
 
 class JokeByKeywordFragment : BaseFragment(), JokeByKeywordPresenter.MVPView, JokeByKeywordPresenter.Navigator {
-
     var presenter: JokeByKeywordPresenter? = null
 //    var adapter: JokeAdapter? = null
 
@@ -82,4 +82,8 @@ class JokeByKeywordFragment : BaseFragment(), JokeByKeywordPresenter.MVPView, Jo
 //
 //        adapter?.notifyDataSetChanged()
 //    }
+
+    override fun showError(text: String) {
+        toast(text)
+    }
 }
