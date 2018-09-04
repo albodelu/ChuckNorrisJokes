@@ -15,6 +15,7 @@
  */
 package es.voghdev.chucknorrisjokes.ui.presenter
 
+import arrow.core.Either
 import es.voghdev.chucknorrisjokes.app.ResLocator
 import es.voghdev.chucknorrisjokes.app.coroutine
 import es.voghdev.chucknorrisjokes.model.Joke
@@ -31,7 +32,16 @@ class JokeByKeywordPresenter(val context: ResLocator, val repository: ChuckNorri
         if (text.isEmpty()) {
             view?.showError("Text must not be empty")
         } else {
-            coroutine { repository.getRandomJokeByKeyword(text.toLowerCase()) }.await()
+            val result = coroutine { repository.getRandomJokeByKeyword(text.toLowerCase()) }.await()
+
+            if ((result as? Either.Right)?.b?.isEmpty() == true)
+                view?.showEmptyCase()
+            else
+                view?.hideEmptyCase()
+
+            (result as? Either.Right)?.b?.forEach { joke ->
+                view?.addJoke(joke)
+            }
         }
 
     }
@@ -39,6 +49,8 @@ class JokeByKeywordPresenter(val context: ResLocator, val repository: ChuckNorri
     interface MVPView {
         fun showError(text: String)
         fun addJoke(joke: Joke)
+        fun showEmptyCase()
+        fun hideEmptyCase()
     }
 
     interface Navigator {

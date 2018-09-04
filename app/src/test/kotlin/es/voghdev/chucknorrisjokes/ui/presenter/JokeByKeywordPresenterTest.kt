@@ -1,5 +1,6 @@
 package es.voghdev.chucknorrisjokes.ui.presenter
 
+import arrow.core.Either
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
@@ -57,8 +58,7 @@ class JokeByKeywordPresenterTest : StringSpec(
         }
 
         "Should show a list of two jokes if search returns two results" {
-            whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(
-                Pair(listOf(exampleJoke, anotherJoke), null))
+            givenThereAreSomeJokesInTheRepository(mockChuckNorrisRepository, listOf(exampleJoke, anotherJoke))
 
             runBlocking {
                 presenter.onSearchButtonClicked("Bruce")
@@ -66,4 +66,33 @@ class JokeByKeywordPresenterTest : StringSpec(
 
             verify(mockView, times(2)).addJoke(anyJoke())
         }
+
+        "Should show an empty case if search returns no results" {
+            givenThereAreNoJokesInTheRepository(mockChuckNorrisRepository)
+
+            runBlocking {
+                presenter.onSearchButtonClicked("Bruce")
+            }
+
+            verify(mockView).showEmptyCase()
+        }
+
+        "Should hide the empty case if Search returns some results" {
+            givenThereAreSomeJokesInTheRepository(mockChuckNorrisRepository, listOf(exampleJoke, anotherJoke))
+
+            runBlocking {
+                presenter.onSearchButtonClicked("Bruce")
+            }
+
+            verify(mockView).hideEmptyCase()
+        }
     })
+
+private fun givenThereAreNoJokesInTheRepository(mockChuckNorrisRepository: ChuckNorrisRepository) {
+    givenThereAreSomeJokesInTheRepository(mockChuckNorrisRepository, emptyList())
+}
+
+private fun givenThereAreSomeJokesInTheRepository(mockChuckNorrisRepository: ChuckNorrisRepository, jokes: List<Joke>) {
+    whenever(mockChuckNorrisRepository.getRandomJokeByKeyword(anyString())).thenReturn(
+        Either.right(jokes))
+}
