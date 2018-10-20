@@ -8,6 +8,12 @@
         android:id="@+id/tv_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/ChuckNorrisText.RandomJoke"
         android:text="Hello World! This is RandomJokeFragment" />
+
+    <ImageView
+            android:id="@+id/iv_image"
+            style="@style/ChuckNorrisImage.RandomJoke"
+            />
 
 </FrameLayout>

@@ -15,17 +15,26 @@
  */
 package es.voghdev.chucknorrisjokes.ui.presenter
 
+import arrow.core.Either
 import es.voghdev.chucknorrisjokes.app.ResLocator
+import es.voghdev.chucknorrisjokes.app.coroutine
 import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
 
 class RandomJokePresenter(val resLocator: ResLocator, val repository: ChuckNorrisRepository) :
-    Presenter<RandomJokePresenter.MVPView, RandomJokePresenter.Navigator>() {
+        Presenter<RandomJokePresenter.MVPView, RandomJokePresenter.Navigator>() {
 
     override suspend fun initialize() {
+        val result = coroutine {
+            repository.getRandomJoke()
+        }.await()
 
+        view?.showJokeText((result as? Either.Right)?.b?.value ?: "")
+        view?.showJokeImage((result as? Either.Right)?.b?.iconUrl ?: "")
     }
 
     interface MVPView {
+        fun showJokeText(text: String)
+        fun showJokeImage(url: String)
 
     }
 

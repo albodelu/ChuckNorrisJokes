@@ -17,14 +17,17 @@ package es.voghdev.chucknorrisjokes.ui.fragment
 
 import android.os.Bundle
 import android.view.View
+import com.squareup.picasso.Picasso
 import es.voghdev.chucknorrisjokes.R
 import es.voghdev.chucknorrisjokes.app.AndroidResLocator
+import es.voghdev.chucknorrisjokes.app.ui
 import es.voghdev.chucknorrisjokes.datasource.api.GetJokeCategoriesApiImpl
 import es.voghdev.chucknorrisjokes.datasource.api.GetRandomJokeApiImpl
 import es.voghdev.chucknorrisjokes.datasource.api.GetRandomJokeByCategoryApiImpl
 import es.voghdev.chucknorrisjokes.datasource.api.GetRandomJokeByKeywordApiImpl
 import es.voghdev.chucknorrisjokes.repository.ChuckNorrisRepository
 import es.voghdev.chucknorrisjokes.ui.presenter.RandomJokePresenter
+import kotlinx.android.synthetic.main.fragment_random_joke.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 
@@ -51,4 +54,12 @@ class RandomJokeFragment : BaseFragment(), RandomJokePresenter.MVPView, RandomJo
     }
 
     override fun getLayoutId(): Int = R.layout.fragment_random_joke
+
+    override fun showJokeText(text: String) = ui {
+        tv_text.text = text
+    }
+
+    override fun showJokeImage(url: String) = ui {
+        Picasso.with(requireContext()).load(url).into(iv_image)
+    }
 }
